@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For You</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d1a2d 30%, #0a1a2e 60%, #1a0a1e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: 'Quicksand', sans-serif;
+    cursor: default;
+  }
+
+  /* Frosty ice rink overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 80%, rgba(150, 200, 255, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(200, 220, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(180, 210, 255, 0.03) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Floating background emojis */
+  .bg-hearts {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-heart {
+    position: absolute;
+    font-size: 20px;
+    opacity: 0.15;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(100vh) rotate(0deg) scale(1); opacity: 0; }
+    10%  { opacity: 0.15; }
+    90%  { opacity: 0.15; }
+    100% { transform: translateY(-10vh) rotate(360deg) scale(0.5); opacity: 0; }
+  }
+
+  /* Question screen */
+  #question-screen {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .heart-icon {
+    font-size: 60px;
+    animation: heartbeat 1.2s ease-in-out infinite;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    15%      { transform: scale(1.15); }
+    30%      { transform: scale(1); }
+    45%      { transform: scale(1.1); }
+  }
+
+  h1 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 3.5rem;
+    color: #c4daff;
+    text-shadow: 0 0 30px rgba(150, 190, 255, 0.4);
+    margin-bottom: 50px;
+    line-height: 1.3;
+  }
+
+  .button-area {
+    position: relative;
+    width: 500px;
+    height: 120px;
+  }
+
+  .btn {
+    padding: 16px 48px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+
+  .btn-yes {
+    background: linear-gradient(135deg, #ff4d6d, #ff758f);
+    color: white;
+    box-shadow: 0 4px 25px rgba(255, 77, 109, 0.5);
+    left: 80px;
+    z-index: 20;
+  }
+  .btn-yes:hover {
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 6px 35px rgba(255, 77, 109, 0.7);
+  }
+
+  .btn-no {
+    background: linear-gradient(135deg, #555, #777);
+    color: #ccc;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    right: 80px;
+    z-index: 15;
+    padding: 10px 28px;
+    font-size: 0.85rem;
+    opacity: 0.6;
+  }
+
+  /* Ice trail particle */
+  .ice-particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 19;
+    font-size: 10px;
+    animation: iceTrailFade 0.8s ease-out forwards;
+  }
+  @keyframes iceTrailFade {
+    0%   { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.2) translateY(-10px); }
+  }
+
+  /* Celebration screen */
+  #celebration-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: linear-gradient(135deg, #0a0e1a 0%, #0d1a2d 30%, #0a1a2e 60%, #1a0a1e 100%);
+  }
+  #celebration-screen.active {
+    display: flex;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .celebration-skater {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: victorySpin 1.5s ease-out forwards;
+  }
+  @keyframes victorySpin {
+    0%   { transform: scale(0.3) rotate(0deg); opacity: 0; }
+    50%  { transform: scale(1.2) rotate(1080deg); opacity: 1; }
+    70%  { transform: scale(0.95) rotate(1400deg); }
+    100% { transform: scale(1) rotate(1440deg); }
+  }
+
+  .celebration-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: 4rem;
+    color: #c4daff;
+    text-shadow: 0 0 40px rgba(150, 190, 255, 0.5);
+    margin-bottom: 10px;
+    animation: scaleIn 0.6s ease 0.8s both;
+  }
+  .celebration-sub {
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1.4rem;
+    color: #a8c4e0;
+    opacity: 0;
+    animation: scaleIn 0.6s ease 1.2s both;
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Celebration falling emojis */
+  .confetti-heart {
+    position: fixed;
+    font-size: 28px;
+    z-index: 99;
+    pointer-events: none;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { opacity: 1; transform: translateY(-20px) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(0.3); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Floating background emojis -->
+<div class="bg-hearts" id="bgHearts"></div>
+
+<!-- Question screen -->
+<div id="question-screen">
+  <div class="heart-icon">&#10084;&#65039;</div>
+  <h1>Will You Be<br>My Valentine?</h1>
+  <div class="button-area" id="buttonArea">
+    <button class="btn btn-yes" id="yesBtn">Yes!</button>
+    <button class="btn btn-no" id="noBtn">No</button>
+  </div>
+</div>
+
+<!-- Celebration screen -->
+<div id="celebration-screen">
+  <div class="celebration-skater">&#128049;</div>
+  <div class="celebration-text">Yay!!</div>
+  <div class="celebration-sub">I knew you'd say yes &#128527;</div>
+</div>
+
+<script>
+  // --- Background floating emojis (hearts + skating + snowflakes) ---
+  const bgHearts = document.getElementById('bgHearts');
+  const bgEmojis = ['\u2764\uFE0F', '\uD83D\uDC95', '\uD83D\uDC96', '\u2744\uFE0F', '\u26F8\uFE0F', '\uD83D\uDC97', '\u2744\uFE0F', '\uD83E\uDE77', '\uD83D\uDC31', '\uD83D\uDC08', '\uD83E\uDDCB', '\uD83D\uDC3E'];
+  const celebrationEmojis = ['\u2764\uFE0F', '\uD83D\uDC95', '\u2744\uFE0F', '\u26F8\uFE0F', '\uD83D\uDC96', '\u2744\uFE0F', '\uD83D\uDC31', '\uD83E\uDDCB'];
+
+  function spawnBgHeart() {
+    const el = document.createElement('span');
+    el.className = 'bg-heart';
+    el.textContent = bgEmojis[Math.floor(Math.random() * bgEmojis.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.fontSize = (14 + Math.random() * 22) + 'px';
+    el.style.animationDuration = (6 + Math.random() * 8) + 's';
+    el.style.animationDelay = '0s';
+    bgHearts.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+  setInterval(spawnBgHeart, 600);
+  for (let i = 0; i < 30; i++) spawnBgHeart();
+
+  // --- Yes button skates toward mouse with graceful curved motion ---
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn  = document.getElementById('noBtn');
+
+  const CHASE_SPEED = 0.06;
+
+  let btnX = window.innerWidth / 2;
+  let btnY = window.innerHeight / 2;
+  let velX = 0;
+  let velY = 0;
+  let mouseX = btnX;
+  let mouseY = btnY;
+  let celebrated = false;
+  let trailCounter = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  // Ice trail particles
+  const iceChars = ['\u2727', '\u2728', '\u2744\uFE0F', '\u00B7', '\u2022'];
+  function spawnIceParticle(x, y) {
+    const p = document.createElement('span');
+    p.className = 'ice-particle';
+    p.textContent = iceChars[Math.floor(Math.random() * iceChars.length)];
+    p.style.left = (x + (Math.random() - 0.5) * 20) + 'px';
+    p.style.top  = (y + (Math.random() - 0.5) * 10) + 'px';
+    p.style.color = `hsl(${200 + Math.random() * 30}, 80%, ${70 + Math.random() * 20}%)`;
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+
+  function animate() {
+    if (celebrated) return;
+
+    // Vector from button to mouse
+    const dx = mouseX - btnX;
+    const dy = mouseY - btnY;
+
+    // Apply a perpendicular "skating" force for curved gliding
+    const dist = Math.hypot(dx, dy);
+    const perpStrength = Math.min(dist * 0.002, 0.4);
+    const perpX = -dy * perpStrength * 0.03;
+    const perpY =  dx * perpStrength * 0.03;
+
+    // Accelerate toward mouse + perpendicular curve
+    velX += (dx * CHASE_SPEED + perpX - velX) * 0.08;
+    velY += (dy * CHASE_SPEED + perpY - velY) * 0.08;
+
+    // Friction
+    velX *= 0.95;
+    velY *= 0.95;
+
+    btnX += velX;
+    btnY += velY;
+
+    // Clamp to screen
+    const bw = yesBtn.offsetWidth;
+    const bh = yesBtn.offsetHeight;
+    const margin = 8;
+    const x = Math.max(margin, Math.min(btnX - bw / 2, window.innerWidth  - bw - margin));
+    const y = Math.max(margin, Math.min(btnY - bh / 2, window.innerHeight - bh - margin));
+
+    yesBtn.style.position = 'fixed';
+    yesBtn.style.left = x + 'px';
+    yesBtn.style.top  = y + 'px';
+    yesBtn.style.transform = 'none';
+
+    // Spawn ice trail particles when moving
+    const speed = Math.hypot(velX, velY);
+    trailCounter++;
+    if (speed > 0.5 && trailCounter % 3 === 0) {
+      spawnIceParticle(btnX, btnY + bh / 2);
+    }
+
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+
+  // --- Celebration ---
+  yesBtn.addEventListener('click', () => {
+    celebrated = true;
+    document.getElementById('question-screen').style.display = 'none';
+    yesBtn.style.display = 'none';
+    noBtn.style.display = 'none';
+    const cel = document.getElementById('celebration-screen');
+    cel.classList.add('active');
+
+    // Shower of hearts + snowflakes + skates
+    let count = 0;
+    const shower = setInterval(() => {
+      for (let i = 0; i < 3; i++) {
+        const h = document.createElement('span');
+        h.className = 'confetti-heart';
+        h.textContent = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
+        h.style.left = Math.random() * 100 + 'vw';
+        h.style.fontSize = (18 + Math.random() * 30) + 'px';
+        h.style.animationDuration = (2 + Math.random() * 3) + 's';
+        document.body.appendChild(h);
+        h.addEventListener('animationend', () => h.remove());
+      }
+      count++;
+      if (count > 40) clearInterval(shower);
+    }, 150);
+  });
+</script>
+
+</body>
+</html>
